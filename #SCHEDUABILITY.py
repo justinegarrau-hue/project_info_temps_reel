@@ -312,6 +312,7 @@ for priority_order in poss :
     next_activation = {name: 0 for name in task7}
     order = []
     idle_periods = []
+    total_waiting_time = 0
 
     while current_time<hyperperiod :
         found = False
@@ -327,11 +328,16 @@ for priority_order in poss :
                 if current_time+wcet >deadline:
                     scheduable= False
                     break
+
+                waiting_time = current_time - next_activation[name]
+                total_waiting_time+=waiting_time
+
                 order.append((name, current_time, wcet))
                 current_time+=wcet
                 next_activation[name] += period
                 found = True
                 break
+
         if not scheduable :
             break
 
@@ -340,12 +346,21 @@ for priority_order in poss :
             current_time+=0.1
     
     if scheduable:
-        yes.append((priority_order,order, idle_periods))
+        yes.append((priority_order,order, idle_periods, total_waiting_time))
 print(f"Number of scheduable sets : {len(yes)}")
 
 #---plot-------
-#we choose the first one :
-best_priority, best_order, idle = yes[0]
+#we order the list in increasing order of total_waiting_time :
+ordered_yes = sorted(yes, key=lambda x: x[3])
+
+#we check the waiting time for each possibility
+# waiting = []
+# for prio, order, idle, wait in ordered_yes:
+#     waiting.append(wait)
+# print(waiting) # the top four is equal in total_waiting time
+
+
+best_priority, best_order, idle, total_waiting_time = ordered_yes[0]#idx 0,1,2 and 3 are valid and minimize the total waiting time
 print(f"schedule : {best_priority}")
 
 colors_map = {"C1": "red", "C2": "orange", "C3": "blue", "C4": "purple", "C5": "green", "C6": "cyan", "C7": "magenta"}
@@ -367,4 +382,3 @@ ax.set_yticklabels(["idle","C1", "C2", "C3","C4","C5","C6","C7"])
 ax.grid(True, linestyle='--', alpha=0.6)
 ax.set_xlim(0, hyperperiod)
 plt.show() 
-
